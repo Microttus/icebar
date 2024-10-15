@@ -1,0 +1,17 @@
+# Dock general settings
+[general]
+position = "bottom"        # Options: bottom, top, left, right
+auto_hide = true           # Automatically hide the dock when not in use
+icon_size = 48             # Size of the icons in pixels
+
+# Dock behavior settings
+[behavior]
+magnification = true       # Enable icon magnification on hover
+magnification_factor = 1.5 # Magnification multiplier
+
+# Dock customization
+[appearance]
+main_color = "blue"
+edge_color = "blue"
+block_style = "box"         # box / island / none
+

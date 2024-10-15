@@ -1,0 +1,25 @@
+Explanation of Directories
+
+cmd/
+
+    Purpose: Contains the entry point(s) for your application.
+    Structure:
+        cmd/icebar/main.go: The main package with the main() function. This is where your application starts.
+
+pkg/
+
+    Purpose: Holds the application code organized into packages.
+    Sub-packages:
+        config/: Handles configuration loading and parsing.
+        dock/: Manages the dock logic, items, and interactions.
+        gui/: Handles the graphical user interface, including rendering and event handling.
+        app/: Manages application launching and related functions.
+        utils/: Contains utility functions and helpers used across packages.
+
+assets/
+
+    Purpose: Stores static files like icons, images, themes, etc.
+
+go.mod and go.sum
+
+    Purpose: Define the module and manage dependencies.

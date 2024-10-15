@@ -1,0 +1,16 @@
+# List of applications to display on the dock
+
+[[applications]]
+name = "Firefox"
+exec = "/usr/bin/firefox"
+icon = "/usr/share/icons/hicolor/48x48/apps/firefox.png"
+
+[[applications]]
+name = "Terminal"
+exec = "/usr/bin/gnome-terminal"
+icon = "/usr/share/icons/hicolor/48x48/apps/gnome-terminal.png"
+
+[[applications]]
+name = "Files"
+exec = "/usr/bin/nautilus"
+icon = "/usr/share/icons/hicolor/48x48/apps/system-file-manager.png"
