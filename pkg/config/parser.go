@@ -1,9 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"github.com/BurntSushi/toml"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 func Load() (*Config, error) {
@@ -23,6 +25,21 @@ func Load() (*Config, error) {
 	//make([]Application, len(apps.Application))
 	cfg.Dock.Applications = apps.Application
 
+	if !isValidHexColor(cfg.Appearance.MainColor) {
+		return nil, fmt.Errorf("Invalid background color: %s", cfg.Appearance.MainColor)
+	}
+
+	if !isValidHexColor(cfg.Appearance.EdgeColor) {
+		return nil, fmt.Errorf("Invalid edge color: %s", cfg.Appearance.EdgeColor)
+	}
+
 	return &cfg, nil
 
+}
+
+// Define a regex pattern for hex color codes
+var hexColorRegex = regexp.MustCompile(`^#(?:[0-9a-fA-F]{3}){1,2}$`)
+
+func isValidHexColor(s string) bool {
+	return hexColorRegex.MatchString(s)
 }
