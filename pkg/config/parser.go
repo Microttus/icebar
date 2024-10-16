@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/BurntSushi/toml"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -17,14 +18,14 @@ func Load() (*Config, error) {
 
 	appsPath := filepath.Join(os.Getenv("HOME"), ".config", "icebar", "apps.toml")
 	var apps struct {
-		Application []Application
+		Application []Application `toml:"applications"`
 	}
 	if _, err := toml.DecodeFile(appsPath, &apps); err != nil {
 		return nil, err
 	}
 	//make([]Application, len(apps.Application))
 	cfg.Dock.Applications = apps.Application
-
+	log.Println("Box style form config: " + cfg.Appearance.BlockStyle + " path:" + cfg.Dock.Applications[0].Name)
 	if !isValidHexColor(cfg.Appearance.MainColor) {
 		return nil, fmt.Errorf("Invalid background color: %s", cfg.Appearance.MainColor)
 	}

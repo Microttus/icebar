@@ -1,35 +1,35 @@
 package config
 
 type Config struct {
-	General    GeneralSettings
-	Behavior   BehaviorSettings
-	Appearance AppearanceSettings
-	Dock       DockSettings
+	General    GeneralSettings    `toml:"general"`
+	Behavior   BehaviorSettings   `toml:"behavior"`
+	Appearance AppearanceSettings `toml:"appearance"`
+	Dock       DockSettings       `toml:"dock"`
 }
 
 type GeneralSettings struct {
-	Position string
-	AutoHide bool
-	IconSize int
+	Position string `toml:"position"`
+	AutoHide bool   `toml:"auto_hide"`
+	IconSize int    `toml:"icon_size"`
 }
 
 type BehaviorSettings struct {
-	Magnification       bool
-	MagnificationFactor float64
+	Magnification       bool    `toml:"magnification"`
+	MagnificationFactor float64 `toml:"magnification_factor"`
 }
 
 type AppearanceSettings struct {
-	MainColor  string
-	EdgeColor  string
-	BlockStyle string
+	MainColor  string `toml:"main_color"`
+	EdgeColor  string `toml:"edge_color"`
+	BlockStyle string `toml:"block_style"`
 }
 
 type DockSettings struct {
-	Applications []Application
+	Applications []Application `toml:"applications"`
 }
 
 type Application struct {
-	Name string
-	Exec string
-	Icon string
+	Name string `toml:"name"`
+	Exec string `toml:"exec"`
+	Icon string `toml:"icon"`
 }
