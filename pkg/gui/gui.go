@@ -2,9 +2,10 @@ package gui
 
 import (
 	"fmt"
-	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/microttus/icebar/pkg/config"
+	"log"
+	"os/exec"
 )
 
 type App struct {
@@ -23,12 +24,28 @@ func (app *App) applyColors() error {
 		return err
 	}
 
-	//Build the CSS string with background color and edge color
+	// Ensure no negative boarder thickness
+	borderThickness := app.Config.Appearance.BorderThickness
+	if borderThickness < 0 {
+		borderThickness = 0
+	}
+
+	//Build the CSS string with options
 	css := fmt.Sprintf(`
 	#dock {
-	   background-color: %s;
-	   border: 1px solid %s;
-	}`, app.Config.Appearance.MainColor, app.Config.Appearance.EdgeColor)
+	   	background-color: %s;
+	   	border: %dpx solid %s;
+		border-radius: 5px;
+        padding: 5px;
+    }
+    .dock-button {
+        border: none;
+        background: transparent;
+    }
+    .dock-button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+	}`, app.Config.Appearance.MainColor, borderThickness, app.Config.Appearance.EdgeColor)
 
 	// Load the CSS data
 	err = cssProvider.LoadFromData(css)
@@ -37,14 +54,69 @@ func (app *App) applyColors() error {
 	}
 
 	// Get the default screen
-	screen, err := gdk.ScreenGetDefault()
-	if err != nil {
+	screen := app.Window.GetScreen()
+	if screen == nil {
 		return err
 	}
 
 	// Apply the CSS provider to the screen
 	gtk.AddProviderForScreen(screen, cssProvider, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
+	return nil
+}
+
+func (app *App) addApplications() error {
+	for _, application := range app.Config.Dock.Applications {
+		// Create button for each application
+		button, err := gtk.ButtonNew()
+		if err != nil {
+			return fmt.Errorf("unable to create button: %v", err)
+		}
+		button.SetName("dock-button")
+		button.SetRelief(gtk.RELIEF_NONE)
+
+		// Create an image for each application
+		img, err := gtk.ImageNewFromFile(application.Icon)
+		if err != nil {
+			log.Printf("Unable to load icon for %s: %v", application.Name, err)
+			continue // Skip this application
+		}
+
+		// Set initial icon size and set img for button
+		img.SetPixelSize(app.Config.General.IconSize)
+		button.Add(img)
+
+		// Set tooltip with application name
+		button.SetTooltipText(application.Name)
+
+		// Clicked to launch
+		appName := application.Name
+		execPath := application.Exec
+		button.Connect("clicked", func() {
+			log.Printf("Launching application: %s (%s)", appName, execPath)
+			cmd := exec.Command(execPath)
+			err := cmd.Start()
+			if err != nil {
+				log.Printf("Failed to launch %s: %v", appName, err)
+				showErrorDialog(app.Window, fmt.Sprintf("Failed to launch %s:\n%v", appName, err))
+
+			}
+		})
+
+		if app.Config.Behavior.Magnification {
+			// Connect the "enter-notify-event" and "leave-notify-event" for magnification
+			button.Connect("enter-notify-event", func() {
+				log.Printf("Hovering over: %s", appName)
+				img.SetPixelSize(int(float64(app.Config.General.IconSize) * app.Config.Behavior.MagnificationFactor))
+			})
+			button.Connect("leave-notify-event", func() {
+				img.SetPixelSize(app.Config.General.IconSize)
+			})
+		}
+
+		// Add button to the MainBox
+		app.MainBox.Add(button)
+	}
 	return nil
 }
 
@@ -64,6 +136,13 @@ func (app *App) Run() error {
 	if err != nil {
 		return err
 	}
+
+	app.Window.SetTitle("icebar")
+	app.Window.SetDefaultSize(800, 600)
+	app.Window.Connect("destroy", func() {
+		log.Println("Destroy signal received. Quitting GTK main loop.")
+		gtk.MainQuit()
+	})
 
 	// Create a box to hold dock items
 	app.MainBox, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
@@ -88,11 +167,8 @@ func (app *App) Run() error {
 	return nil
 }
 
-//func parseColor(colorStr string) (*gdk.RGBA, error) {
-//	color := &gdk.RGBA{}
-//	if !color.Parse(colorStr) {
-//		return nil, fmt.Errorf("invalid color form
-//		at: %s", colorStr)
-//	}
-//	return color, nil
-//}
+func showErrorDialog(parent *gtk.Window, message string) {
+	dialog := gtk.MessageDialogNew(parent, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, message)
+	dialog.Run()
+	dialog.Destroy()
+}

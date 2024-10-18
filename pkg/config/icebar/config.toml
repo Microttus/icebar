@@ -11,7 +11,8 @@ magnification_factor = 1.5 # Magnification multiplier
 
 # Dock customization
 [appearance]
-main_color = "blue"
-edge_color = "blue"
+main_color = "#403939"
+edge_color = "#827676"
+border_thickness = 2
 block_style = "box"         # box / island / none
 
