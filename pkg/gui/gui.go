@@ -44,7 +44,6 @@ func (app *App) applyColors() error {
     }
     .dock-button:hover {
         background-color: rgba(255, 255, 255, 0.1);
-    }
 	}`, app.Config.Appearance.MainColor, borderThickness, app.Config.Appearance.EdgeColor)
 
 	// Load the CSS data
@@ -150,12 +149,16 @@ func (app *App) Run() error {
 		return err
 	}
 
-	// Add the main box to the window
-	app.Window.Add(app.MainBox)
-
 	// Apply colors after initializing GUI components
 	if err := app.applyColors(); err != nil {
 		return err
+	}
+
+	// Add the main box to the window
+	app.Window.Add(app.MainBox)
+
+	if err := app.addApplications(); err != nil {
+		return fmt.Errorf("Unable to add applications: %v", err)
 	}
 
 	// Show all windows
