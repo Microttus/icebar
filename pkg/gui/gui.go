@@ -1,10 +1,13 @@
 package gui
 
 import (
-	"fmt"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
+
 	"github.com/microttus/icebar/pkg/config"
+	"github.com/microttus/icebar/pkg/utils"
+
+	"fmt"
 	"log"
 	"os/exec"
 )
@@ -112,7 +115,7 @@ func (app *App) addApplications() error {
 			err := cmd.Start()
 			if err != nil {
 				log.Printf("Failed to launch %s: %v", appName, err)
-				showErrorDialog(app.Window, fmt.Sprintf("Failed to launch %s:\n%v", appName, err))
+				utils.ShowErrorDialog(app.Window, fmt.Sprintf("Failed to launch %s:\n%v", appName, err))
 
 			}
 		})
@@ -239,10 +242,4 @@ func (app *App) positionWindow() {
 
 	// Move the window to pos
 	app.Window.Move(posX, posY)
-}
-
-func showErrorDialog(parent *gtk.Window, message string) {
-	dialog := gtk.MessageDialogNew(parent, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, message)
-	dialog.Run()
-	dialog.Destroy()
 }
