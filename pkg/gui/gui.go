@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/microttus/icebar/pkg/config"
 	"log"
@@ -73,6 +74,11 @@ func (app *App) addApplications() error {
 		}
 		button.SetName("dock-button")
 		button.SetRelief(gtk.RELIEF_NONE)
+		button.SetCanFocus(false)
+
+		// Set margins for spacing between buttons
+		button.SetMarginStart(5)
+		button.SetMarginEnd(5)
 
 		// Create an image for each application
 		img, err := gtk.ImageNewFromFile(application.Icon)
@@ -114,7 +120,7 @@ func (app *App) addApplications() error {
 		}
 
 		// Add button to the MainBox
-		app.MainBox.Add(button)
+		app.MainBox.PackStart(button, false, false, 0)
 	}
 	return nil
 }
@@ -137,7 +143,10 @@ func (app *App) Run() error {
 	}
 
 	app.Window.SetTitle("icebar")
-	app.Window.SetDefaultSize(800, 600)
+	app.Window.SetResizable(false)
+	app.Window.SetDecorated(false)
+	app.Window.SetSkipTaskbarHint(true)
+	app.Window.SetKeepAbove(true)
 	app.Window.Connect("destroy", func() {
 		log.Println("Destroy signal received. Quitting GTK main loop.")
 		gtk.MainQuit()
@@ -164,10 +173,63 @@ func (app *App) Run() error {
 	// Show all windows
 	app.Window.ShowAll()
 
+	// Position window
+	app.positionWindow()
+
 	// Start the GTK main loop
 	gtk.Main()
 
 	return nil
+}
+
+func (app *App) positionWindow() {
+	// Get the default display
+	display, err := gdk.DisplayGetDefault()
+	if err != nil || display == nil {
+		log.Println("Unable to get default display")
+		return
+	}
+
+	// Get the primary monitor
+	monitor, _ := display.GetPrimaryMonitor()
+	if monitor == nil {
+		log.Println("Unable to get primary monitor")
+		return
+	}
+
+	// Get monitor geometry
+	screen := monitor.GetGeometry()
+
+	screenWidth := screen.GetWidth()
+	screenHeight := screen.GetHeight()
+
+	// Get the windows dimensions
+	winWidth, winHeight := app.Window.GetSize()
+
+	// Calculate position
+	var posX, posY int
+
+	// Determine position based on config
+	switch app.Config.General.Position {
+	case "bottom":
+		posX = (screenWidth - winWidth) / 2
+		posY = screenHeight - winHeight
+	case "top":
+		posX = (screenWidth - winWidth) / 2
+		posY = 0
+	case "left":
+		posX = 0
+		posY = (screenHeight - winHeight) / 2
+	case "right":
+		posX = screenWidth - winWidth
+		posY = (screenHeight - winHeight) / 2
+	default:
+		posX = (screenWidth - winWidth) / 2
+		posY = screenHeight - winHeight
+	}
+
+	// Move the window to pos
+	app.Window.Move(posX, posY)
 }
 
 func showErrorDialog(parent *gtk.Window, message string) {
