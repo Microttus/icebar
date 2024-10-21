@@ -67,6 +67,10 @@ func (app *App) applyColors() error {
 
 func (app *App) addApplications() error {
 	for _, application := range app.Config.Dock.Applications {
+		iconSize := app.Config.General.IconSize
+		//magnificationEnabled := app.Config.Behavior.Magnification
+		//magnificationFactor := app.Config.Behavior.MagnificationFactor
+
 		// Create button for each application
 		button, err := gtk.ButtonNew()
 		if err != nil {
@@ -81,14 +85,19 @@ func (app *App) addApplications() error {
 		button.SetMarginEnd(5)
 
 		// Create an image for each application
-		img, err := gtk.ImageNewFromFile(application.Icon)
+		// img, err := gtk.ImageNewFromFile(application.Icon)
+		img, err := gtk.ImageNew()
+		iconTheme, err := gtk.IconThemeGetDefault()
+		//orginalPixbuf, err := gdk.PixbufNewFromFile(application.Icon)
 		if err != nil {
 			log.Printf("Unable to load icon for %s: %v", application.Name, err)
 			continue // Skip this application
 		}
+		// Scale icon
+		icon, err := iconTheme.LoadIcon(application.Icon, iconSize, gtk.ICON_LOOKUP_FORCE_SIZE)
 
 		// Set initial icon size and set img for button
-		img.SetPixelSize(app.Config.General.IconSize)
+		img.SetFromPixbuf(icon)
 		button.Add(img)
 
 		// Set tooltip with application name
