@@ -5,9 +5,8 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/microttus/icebar/pkg/config"
 	"github.com/microttus/icebar/pkg/gui"
-	"github.com/microttus/icebar/pkg/utils"
+	"github.com/microttus/icebar/pkg/launcher"
 	"log"
-	"os/exec"
 )
 
 type Dock struct {
@@ -45,41 +44,36 @@ func AddApplicationButton(app *gui.App, application config.Application) error {
 	button.SetMarginEnd(5)
 
 	// Create an image for each application
-	img, err := gtk.ImageNew()
-	iconTheme, err := gtk.IconThemeGetDefault()
+	img, err := gtk.ImageNewFromFile(application.Icon)
+	//iconTheme, err := gtk.IconThemeGetDefault()
 	if err != nil {
 		//log.Printf("Unable to load icon for %s: %v", application.Name, err)
 		return fmt.Errorf("Unable to load icon for %s: %v", application.Name, err)
 	}
+
 	// Scale icon
-	icon, err := iconTheme.LoadIcon(application.Icon, iconSize, gtk.ICON_LOOKUP_FORCE_SIZE)
+	//icon, err := iconTheme.LoadIcon(application.Icon, iconSize, gtk.ICON_LOOKUP_FORCE_SIZE)
+	img.SetSizeRequest(iconSize, iconSize)
 
 	// Set initial icon size and set img for button
-	img.SetFromPixbuf(icon)
+	//img.SetFromPixbuf(icon)
 	button.Add(img)
 
 	// Set tooltip with application name
 	button.SetTooltipText(application.Name)
 
 	// Clicked to launch
-	appName := application.Name
-	execPath := application.Exec
 	button.Connect("clicked", func() {
-
-		log.Printf("Launching application: %s (%s)", appName, execPath)
-		cmd := exec.Command(execPath)
-		err := cmd.Start()
+		err := launcher.Launch(app, application.Name, application.Exec)
 		if err != nil {
-			log.Printf("Failed to launch %s: %v", appName, err)
-			utils.ShowErrorDialog(app.Window, fmt.Sprintf("Failed to launch %s:\n%v", appName, err))
-
+			return
 		}
 	})
 
 	if app.Config.Behavior.Magnification {
 		// Connect the "enter-notify-event" and "leave-notify-event" for magnification
 		button.Connect("enter-notify-event", func() {
-			log.Printf("Hovering over: %s", appName)
+			log.Printf("Hovering over: %s", application.Name)
 			img.SetPixelSize(int(float64(app.Config.General.IconSize) * app.Config.Behavior.MagnificationFactor))
 		})
 		button.Connect("leave-notify-event", func() {
