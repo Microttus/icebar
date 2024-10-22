@@ -83,63 +83,6 @@ func (app *App) addApplications() error {
 	return nil
 }
 
-func NewApp(cfg *config.Config) *App {
-	return &App{
-		Config: cfg,
-	}
-}
-
-func (app *App) Run() error {
-	// Initialize GTK
-	gtk.Init(nil)
-
-	// Create the main window
-	var err error
-	app.Window, err = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
-	if err != nil {
-		return err
-	}
-
-	app.Window.SetTitle("icebar")
-	app.Window.SetResizable(false)
-	app.Window.SetDecorated(false)
-	app.Window.SetSkipTaskbarHint(true)
-	app.Window.SetKeepAbove(true)
-	app.Window.Connect("destroy", func() {
-		log.Println("Destroy signal received. Quitting GTK main loop.")
-		gtk.MainQuit()
-	})
-
-	// Create a box to hold dock items
-	app.MainBox, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-	if err != nil {
-		return err
-	}
-
-	// Apply colors after initializing GUI components
-	if err := app.applyColors(); err != nil {
-		return err
-	}
-
-	// Add the main box to the window
-	app.Window.Add(app.MainBox)
-
-	if err := app.addApplications(); err != nil {
-		return fmt.Errorf("Unable to add applications: %v", err)
-	}
-
-	// Show all windows
-	app.Window.ShowAll()
-
-	// Position window
-	app.positionWindow()
-
-	// Start the GTK main loop
-	gtk.Main()
-
-	return nil
-}
-
 func (app *App) positionWindow() {
 	// Get the default display
 	display, err := gdk.DisplayGetDefault()
@@ -190,4 +133,70 @@ func (app *App) positionWindow() {
 
 	// Move the window to pos
 	app.Window.Move(posX, posY)
+}
+
+func NewApp(cfg *config.Config) *App {
+	return &App{
+		Config: cfg,
+	}
+}
+
+func (app *App) Run() error {
+	// Initialize GTK
+	gtk.Init(nil)
+
+	// Create the main window
+	var err error
+	app.Window, err = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+	if err != nil {
+		return err
+	}
+
+	app.Window.SetTitle("icebar")
+	app.Window.SetResizable(false)
+	app.Window.SetDecorated(false)
+	app.Window.SetSkipTaskbarHint(false)
+	app.Window.SetKeepAbove(true)
+	app.Window.Connect("destroy", func() {
+		log.Println("Destroy signal received. Quitting GTK main loop.")
+		gtk.MainQuit()
+	})
+
+	// Find orientation
+	var orientation gtk.Orientation
+	switch app.Config.General.Position {
+	case "left", "right":
+		orientation = gtk.ORIENTATION_VERTICAL
+	default:
+		orientation = gtk.ORIENTATION_HORIZONTAL
+	}
+
+	// Create a box to hold dock items
+	app.MainBox, err = gtk.BoxNew(orientation, 0)
+	if err != nil {
+		return err
+	}
+
+	// Apply colors after initializing GUI components
+	if err := app.applyColors(); err != nil {
+		return err
+	}
+
+	// Add the main box to the window
+	app.Window.Add(app.MainBox)
+
+	if err := app.addApplications(); err != nil {
+		return fmt.Errorf("Unable to add applications: %v", err)
+	}
+
+	// Show all windows
+	app.Window.ShowAll()
+
+	// Position window
+	app.positionWindow()
+
+	// Start the GTK main loop
+	gtk.Main()
+
+	return nil
 }
