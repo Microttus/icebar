@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/microttus/icebar/pkg/config"
-	"github.com/microttus/icebar/pkg/gui"
 	"github.com/microttus/icebar/pkg/launcher"
 	"log"
 )
@@ -25,15 +24,13 @@ func createItems(apps []config.Application) []Item {
 	return nil
 }
 
-func AddApplicationButton(app *gui.App, application config.Application) error {
-	iconSize := app.Config.General.IconSize
-	//magnificationEnabled := app.Config.Behavior.Magnification
-	//magnificationFactor := app.Config.Behavior.MagnificationFactor
+func AddApplicationButton(cfg *config.Config, application config.Application) (*gtk.Button, error) {
+	iconSize := cfg.General.IconSize
 
 	// Create button for each application
 	button, err := gtk.ButtonNew()
 	if err != nil {
-		return fmt.Errorf("unable to create button: %v", err)
+		return nil, fmt.Errorf("unable to create button: %v", err)
 	}
 	button.SetName("dock-button")
 	button.SetRelief(gtk.RELIEF_NONE)
@@ -48,7 +45,7 @@ func AddApplicationButton(app *gui.App, application config.Application) error {
 	//iconTheme, err := gtk.IconThemeGetDefault()
 	if err != nil {
 		//log.Printf("Unable to load icon for %s: %v", application.Name, err)
-		return fmt.Errorf("Unable to load icon for %s: %v", application.Name, err)
+		return nil, fmt.Errorf("Unable to load icon for %s: %v", application.Name, err)
 	}
 
 	// Scale icon
@@ -64,25 +61,22 @@ func AddApplicationButton(app *gui.App, application config.Application) error {
 
 	// Clicked to launch
 	button.Connect("clicked", func() {
-		err := launcher.Launch(app, application.Name, application.Exec)
+		err := launcher.Launch(application.Name, application.Exec)
 		if err != nil {
 			return
 		}
 	})
 
-	if app.Config.Behavior.Magnification {
+	if cfg.Behavior.Magnification {
 		// Connect the "enter-notify-event" and "leave-notify-event" for magnification
 		button.Connect("enter-notify-event", func() {
 			log.Printf("Hovering over: %s", application.Name)
-			img.SetPixelSize(int(float64(app.Config.General.IconSize) * app.Config.Behavior.MagnificationFactor))
+			img.SetPixelSize(int(float64(cfg.General.IconSize) * cfg.Behavior.MagnificationFactor))
 		})
 		button.Connect("leave-notify-event", func() {
-			img.SetPixelSize(app.Config.General.IconSize)
+			img.SetPixelSize(cfg.General.IconSize)
 		})
 	}
 
-	// Add button to the MainBox
-	app.MainBox.PackStart(button, false, false, 0)
-
-	return nil
+	return button, nil
 }

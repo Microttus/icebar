@@ -68,9 +68,17 @@ func (app *App) applyColors() error {
 
 func (app *App) addApplications() error {
 	for _, application := range app.Config.Dock.Applications {
-		if err := dock.AddApplicationButton(app, application); err != nil {
+		button, err := dock.AddApplicationButton(app.Config, application)
+		if err != nil {
 			log.Printf("Failed to add application button for %s: %v", application.Name, err)
+			continue
 		}
+		if button == nil {
+			continue
+		}
+
+		// Add button to the MainBox
+		app.MainBox.PackStart(button, false, false, 0)
 	}
 	return nil
 }
