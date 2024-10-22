@@ -45,10 +45,8 @@ func AddApplicationButton(app *gui.App, application config.Application) error {
 	button.SetMarginEnd(5)
 
 	// Create an image for each application
-	// img, err := gtk.ImageNewFromFile(application.Icon)
 	img, err := gtk.ImageNew()
 	iconTheme, err := gtk.IconThemeGetDefault()
-	//orginalPixbuf, err := gdk.PixbufNewFromFile(application.Icon)
 	if err != nil {
 		//log.Printf("Unable to load icon for %s: %v", application.Name, err)
 		return fmt.Errorf("Unable to load icon for %s: %v", application.Name, err)
@@ -67,6 +65,7 @@ func AddApplicationButton(app *gui.App, application config.Application) error {
 	appName := application.Name
 	execPath := application.Exec
 	button.Connect("clicked", func() {
+
 		log.Printf("Launching application: %s (%s)", appName, execPath)
 		cmd := exec.Command(execPath)
 		err := cmd.Start()

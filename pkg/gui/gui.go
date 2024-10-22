@@ -3,13 +3,11 @@ package gui
 import (
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
-
-	"github.com/microttus/icebar/pkg/config"
-	"github.com/microttus/icebar/pkg/utils"
+	"github.com/microttus/icebar/pkg/dock"
 
 	"fmt"
+	"github.com/microttus/icebar/pkg/config"
 	"log"
-	"os/exec"
 )
 
 type App struct {
@@ -70,69 +68,9 @@ func (app *App) applyColors() error {
 
 func (app *App) addApplications() error {
 	for _, application := range app.Config.Dock.Applications {
-		iconSize := app.Config.General.IconSize
-		//magnificationEnabled := app.Config.Behavior.Magnification
-		//magnificationFactor := app.Config.Behavior.MagnificationFactor
-
-		// Create button for each application
-		button, err := gtk.ButtonNew()
-		if err != nil {
-			return fmt.Errorf("unable to create button: %v", err)
+		if err := dock.AddApplicationButton(app, application); err != nil {
+			log.Printf("Failed to add application button for %s: %v", application.Name, err)
 		}
-		button.SetName("dock-button")
-		button.SetRelief(gtk.RELIEF_NONE)
-		button.SetCanFocus(false)
-
-		// Set margins for spacing between buttons
-		button.SetMarginStart(5)
-		button.SetMarginEnd(5)
-
-		// Create an image for each application
-		// img, err := gtk.ImageNewFromFile(application.Icon)
-		img, err := gtk.ImageNew()
-		iconTheme, err := gtk.IconThemeGetDefault()
-		//orginalPixbuf, err := gdk.PixbufNewFromFile(application.Icon)
-		if err != nil {
-			log.Printf("Unable to load icon for %s: %v", application.Name, err)
-			continue // Skip this application
-		}
-		// Scale icon
-		icon, err := iconTheme.LoadIcon(application.Icon, iconSize, gtk.ICON_LOOKUP_FORCE_SIZE)
-
-		// Set initial icon size and set img for button
-		img.SetFromPixbuf(icon)
-		button.Add(img)
-
-		// Set tooltip with application name
-		button.SetTooltipText(application.Name)
-
-		// Clicked to launch
-		appName := application.Name
-		execPath := application.Exec
-		button.Connect("clicked", func() {
-			log.Printf("Launching application: %s (%s)", appName, execPath)
-			cmd := exec.Command(execPath)
-			err := cmd.Start()
-			if err != nil {
-				log.Printf("Failed to launch %s: %v", appName, err)
-				utils.ShowErrorDialog(app.Window, fmt.Sprintf("Failed to launch %s:\n%v", appName, err))
-
-			}
-		})
-
-		if app.Config.Behavior.Magnification {
-			// Connect the "enter-notify-event" and "leave-notify-event" for magnification
-			button.Connect("enter-notify-event", func() {
-				log.Printf("Hovering over: %s", appName)
-				img.SetPixelSize(int(float64(app.Config.General.IconSize) * app.Config.Behavior.MagnificationFactor))
-			})
-			button.Connect("leave-notify-event", func() {
-				img.SetPixelSize(app.Config.General.IconSize)
-			})
-		}
-
-		// Add button to the MainBox
-		app.MainBox.PackStart(button, false, false, 0)
 	}
 	return nil
 }
@@ -221,23 +159,25 @@ func (app *App) positionWindow() {
 	// Calculate position
 	var posX, posY int
 
+	var offsetX, offsetY int = 5, 5
+
 	// Determine position based on config
 	switch app.Config.General.Position {
 	case "bottom":
 		posX = (screenWidth - winWidth) / 2
-		posY = screenHeight - winHeight
+		posY = screenHeight - winHeight - offsetY
 	case "top":
 		posX = (screenWidth - winWidth) / 2
-		posY = 0
+		posY = offsetY
 	case "left":
-		posX = 0
+		posX = offsetX
 		posY = (screenHeight - winHeight) / 2
 	case "right":
 		posX = screenWidth - winWidth
 		posY = (screenHeight - winHeight) / 2
 	default:
 		posX = (screenWidth - winWidth) / 2
-		posY = screenHeight - winHeight
+		posY = screenHeight - winHeight - offsetY
 	}
 
 	// Move the window to pos
