@@ -16,7 +16,7 @@ type GeneralSettings struct {
 type BehaviorSettings struct {
 	Magnification       bool    `toml:"magnification"`
 	MagnificationFactor float64 `toml:"magnification_factor"`
-	AppNameOnHover      string  `toml:"app_name_on_hover"`
+	AppNameOnHover      bool    `toml:"app_name_on_hover"`
 }
 
 type AppearanceSettings struct {

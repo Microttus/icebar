@@ -9,6 +9,7 @@ import (
 	"log"
 )
 
+/*
 type Dock struct {
 	Item []Item
 }
@@ -24,6 +25,7 @@ func createItems(apps []config.Application) []Item {
 	// Create dock items from applications
 	return nil
 }
+*/
 
 func AddApplicationButton(cfg *config.Config, application config.Application) (*gtk.Button, error) {
 	iconSize := cfg.General.IconSize
@@ -60,7 +62,9 @@ func AddApplicationButton(cfg *config.Config, application config.Application) (*
 	button.Add(img)
 
 	// Set tooltip with application name
-	button.SetTooltipText(application.Name)
+	if cfg.Behavior.AppNameOnHover {
+		button.SetTooltipText(application.Name)
+	}
 
 	// Clicked to launch
 	button.Connect("clicked", func() {
