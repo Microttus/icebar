@@ -16,6 +16,7 @@ type GeneralSettings struct {
 type BehaviorSettings struct {
 	Magnification       bool    `toml:"magnification"`
 	MagnificationFactor float64 `toml:"magnification_factor"`
+	AppNameOnHover      string  `toml:"app_name_on_hover"`
 }
 
 type AppearanceSettings struct {
@@ -23,6 +24,7 @@ type AppearanceSettings struct {
 	EdgeColor       string `toml:"edge_color"`
 	BorderThickness int    `toml:"border_thickness"`
 	BlockStyle      string `toml:"block_style"`
+	DockMargins     int    `toml:"dock_margins"`
 }
 
 type DockSettings struct {
