@@ -37,7 +37,7 @@ func AddApplicationButton(cfg *config.Config, application config.Application) (*
 	button.SetRelief(gtk.RELIEF_NONE)
 	button.SetCanFocus(false)
 
-	// Set margins for spacing between buttons
+	// Set margins for spacing between buttons // TODO: Add margin from config
 	button.SetMarginStart(5)
 	button.SetMarginEnd(5)
 	button.SetMarginTop(5)
