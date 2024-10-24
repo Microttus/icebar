@@ -4,6 +4,7 @@ import (
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/microttus/icebar/pkg/dock"
+	"time"
 
 	"fmt"
 	"github.com/microttus/icebar/pkg/config"
@@ -226,6 +227,7 @@ func (app *App) CreateHotZone() error {
 }
 
 func (app *App) HideDock() {
+	time.Sleep(500 * time.Millisecond)
 	app.Window.Hide()
 }
 
@@ -263,13 +265,11 @@ func (app *App) Run() error {
 	// Auto hide
 	app.Window.AddEvents(int(gdk.EVENT_ENTER_NOTIFY | gdk.EVENT_LEAVE_NOTIFY)) // Add event pointer to notify
 	app.Window.Connect("leave-notify-event", func(widget *gtk.Window, event *gdk.Event) bool {
-		//app.HideDock()
-		app.ShowDock()
+		app.HideDock()
 		return false
 	})
 	app.Window.Connect("enter-notify-event", func(widget *gtk.Window, event *gdk.Event) bool {
-		//app.ShowDock()
-		app.HideDock()
+		app.ShowDock()
 		return false
 	})
 
