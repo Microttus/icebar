@@ -1,4 +1,6 @@
-# Icebar
+# Icebar 
+
+
 
 An docker application, made to be super simple and static. Running with a GO backend
 
@@ -7,11 +9,13 @@ An docker application, made to be super simple and static. Running with a GO bac
 
 **Features**
 - [ ] Auto Hide
-- [ ] Margin from config
+- [x] Margin from config
+- [ ] Box style (box/island/none)
 - [ ] Dynamic configuration handling
 - [ ] Set monitor from config
 - [ ] Running-state integration
 - [ ] Dynamic config path on launch
+- [ ] Paper basket option
 
 **Bugs**
 - [ ] Misalignment

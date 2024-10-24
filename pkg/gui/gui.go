@@ -11,9 +11,10 @@ import (
 )
 
 type App struct {
-	Config  *config.Config
-	Window  *gtk.Window
-	MainBox *gtk.Box
+	Config        *config.Config
+	Window        *gtk.Window
+	MainBox       *gtk.Box
+	HotZoneWindow *gtk.Window
 }
 
 func (app *App) applyColors() error {
@@ -135,6 +136,103 @@ func (app *App) positionWindow() {
 	app.Window.Move(posX, posY)
 }
 
+func (app *App) positionHotZone() {
+	// Get the default display
+	display, err := gdk.DisplayGetDefault()
+	if err != nil || display == nil {
+		log.Println("Unable to get default display")
+		return
+	}
+
+	// Get the primary monitor
+	monitor, _ := display.GetPrimaryMonitor()
+	if monitor == nil {
+		log.Println("Unable to get primary monitor")
+		return
+	}
+
+	// Get monitor geometry
+	screen := monitor.GetGeometry()
+
+	screenWidth := screen.GetWidth()
+	screenHeight := screen.GetHeight()
+
+	// Define hot zone dimensions
+	hotZoneThickness := 5 // Thickness of the hot zone in pixels
+
+	// Variables for position and size
+	var posX, posY, width, height int
+
+	// Determine position based on config
+	switch app.Config.General.Position {
+	case "bottom":
+		posX = 0
+		posY = screenHeight - hotZoneThickness
+		width = screenWidth
+		height = hotZoneThickness
+	case "top":
+		posX = 0
+		posY = 0
+		width = screenWidth
+		height = hotZoneThickness
+	case "left":
+		posX = 0
+		posY = 0
+		width = hotZoneThickness
+		height = screenHeight
+	case "right":
+		posX = screenWidth - hotZoneThickness
+		posY = 0
+		width = hotZoneThickness
+		height = screenHeight
+	default:
+		// Default to bottom
+		posX = 0
+		posY = screenHeight - hotZoneThickness
+		width = screenWidth
+		height = hotZoneThickness
+	}
+
+	// Move and resize the hot zone window
+	app.HotZoneWindow.Move(posX, posY)
+	app.HotZoneWindow.SetDefaultSize(width, height)
+}
+
+func (app *App) CreateHotZone() error {
+	var err error
+	app.HotZoneWindow, err = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+	if err != nil {
+		return fmt.Errorf("unable to create hot zone window: %v", err)
+	}
+
+	app.HotZoneWindow.SetTypeHint(gdk.WINDOW_TYPE_HINT_DOCK)
+	app.HotZoneWindow.SetDecorated(false)
+	app.HotZoneWindow.SetSkipTaskbarHint(true)
+	app.HotZoneWindow.SetAcceptFocus(false)
+	app.HotZoneWindow.SetKeepAbove(true)
+	app.HotZoneWindow.SetOpacity(0) // make window invisible
+
+	// Position of the hotzone
+	app.positionHotZone()
+
+	// Connect to enter-notify-event to show the dock
+	app.HotZoneWindow.Connect("enter-notify-event", func(widget *gtk.Widget, event *gdk.Event) {
+		app.ShowDock()
+	})
+
+	app.HotZoneWindow.ShowAll()
+
+	return nil
+}
+
+func (app *App) HideDock() {
+	app.Window.Hide()
+}
+
+func (app *App) ShowDock() {
+	app.Window.ShowAll()
+}
+
 func NewApp(cfg *config.Config) *App {
 	return &App{
 		Config: cfg,
@@ -162,6 +260,17 @@ func (app *App) Run() error {
 		gtk.MainQuit()
 	})
 
+	// Auto hide
+	app.Window.AddEvents(int(gdk.EVENT_ENTER_NOTIFY | gdk.EVENT_LEAVE_NOTIFY)) // Add event pointer to notify
+	app.Window.Connect("leave-notify-event", func(widget *gtk.Widget, event *gdk.Event) bool {
+		app.HideDock()
+		return false
+	})
+	app.Window.Connect("enter-notify-event", func(widget *gtk.Widget, event *gdk.Event) bool {
+		app.ShowDock()
+		return false
+	})
+
 	// Find orientation
 	var orientation gtk.Orientation
 	switch app.Config.General.Position {
@@ -186,7 +295,7 @@ func (app *App) Run() error {
 	app.Window.Add(app.MainBox)
 
 	if err := app.addApplications(); err != nil {
-		return fmt.Errorf("Unable to add applications: %v", err)
+		return fmt.Errorf("unable to add applications: %v", err)
 	}
 
 	// Show all windows
@@ -194,6 +303,11 @@ func (app *App) Run() error {
 
 	// Position window
 	app.positionWindow()
+
+	//Create the hot zone
+	if err := app.CreateHotZone(); err != nil {
+		return fmt.Errorf("unable to create hot zone: %v", err)
+	}
 
 	// Start the GTK main loop
 	gtk.Main()
