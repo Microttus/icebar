@@ -210,7 +210,7 @@ func (app *App) CreateHotZone() error {
 	app.HotZoneWindow.SetSkipTaskbarHint(true)
 	app.HotZoneWindow.SetAcceptFocus(false)
 	app.HotZoneWindow.SetKeepAbove(true)
-	app.HotZoneWindow.SetOpacity(0) // make window invisible
+	app.HotZoneWindow.SetOpacity(100) // make window invisible
 
 	// Position of the hotzone
 	app.positionHotZone()
@@ -263,11 +263,13 @@ func (app *App) Run() error {
 	// Auto hide
 	app.Window.AddEvents(int(gdk.EVENT_ENTER_NOTIFY | gdk.EVENT_LEAVE_NOTIFY)) // Add event pointer to notify
 	app.Window.Connect("leave-notify-event", func(widget *gtk.Window, event *gdk.Event) bool {
-		app.HideDock()
+		//app.HideDock()
+		app.ShowDock()
 		return false
 	})
 	app.Window.Connect("enter-notify-event", func(widget *gtk.Window, event *gdk.Event) bool {
-		app.ShowDock()
+		//app.ShowDock()
+		app.HideDock()
 		return false
 	})
 
