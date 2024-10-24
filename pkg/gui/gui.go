@@ -211,13 +211,32 @@ func (app *App) CreateHotZone() error {
 	app.HotZoneWindow.SetSkipTaskbarHint(true)
 	app.HotZoneWindow.SetAcceptFocus(false)
 	app.HotZoneWindow.SetKeepAbove(true)
-	app.HotZoneWindow.SetOpacity(100) // make window invisible
+	app.HotZoneWindow.SetOpacity(0.0)
+
+	visual, _ := app.HotZoneWindow.GetScreen().GetRGBAVisual()
+	if visual != nil {
+		app.HotZoneWindow.SetVisual(visual)
+	}
+
+	// Set transparent background via CSS
+	cssProvider, _ := gtk.CssProviderNew()
+	css := `
+    window {
+        background-color: rgba(0, 0, 0, 0);
+    }
+    `
+	err = cssProvider.LoadFromData(css)
+	if err != nil {
+		return err
+	}
+	screen := app.HotZoneWindow.GetScreen()
+	gtk.AddProviderForScreen(screen, cssProvider, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 	// Position of the hotzone
 	app.positionHotZone()
 
 	// Connect to enter-notify-event to show the dock
-	app.HotZoneWindow.Connect("enter-notify-event", func(widget *gtk.Window, event *gdk.Event) {
+	app.HotZoneWindow.Connect("enter-notify-event", func(event *gdk.Event) {
 		app.ShowDock()
 	})
 
@@ -264,11 +283,11 @@ func (app *App) Run() error {
 
 	// Auto hide
 	app.Window.AddEvents(int(gdk.EVENT_ENTER_NOTIFY | gdk.EVENT_LEAVE_NOTIFY)) // Add event pointer to notify
-	app.Window.Connect("leave-notify-event", func(widget *gtk.Window, event *gdk.Event) bool {
+	app.Window.Connect("leave-notify-event", func(event *gdk.Event) bool {
 		app.HideDock()
 		return false
 	})
-	app.Window.Connect("enter-notify-event", func(widget *gtk.Window, event *gdk.Event) bool {
+	app.Window.Connect("enter-notify-event", func(event *gdk.Event) bool {
 		app.ShowDock()
 		return false
 	})
