@@ -216,7 +216,7 @@ func (app *App) CreateHotZone() error {
 	app.positionHotZone()
 
 	// Connect to enter-notify-event to show the dock
-	app.HotZoneWindow.Connect("enter-notify-event", func(widget *gtk.Widget, event *gdk.Event) {
+	app.HotZoneWindow.Connect("enter-notify-event", func(widget *gtk.Window, event *gdk.Event) {
 		app.ShowDock()
 	})
 
