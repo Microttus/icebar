@@ -237,7 +237,8 @@ func (app *App) CreateHotZone() error {
 
 	// Connect to enter-notify-event to show the dock
 	app.HotZoneWindow.Connect("enter-notify-event", func(event *gdk.Event) {
-		app.ShowDock()
+		app.HideDock()
+		//app.ShowDock()
 	})
 
 	app.HotZoneWindow.ShowAll()
@@ -282,15 +283,19 @@ func (app *App) Run() error {
 	})
 
 	// Auto hide
-	app.Window.AddEvents(int(gdk.EVENT_ENTER_NOTIFY | gdk.EVENT_LEAVE_NOTIFY)) // Add event pointer to notify
-	app.Window.Connect("leave-notify-event", func(event *gdk.Event) bool {
-		app.HideDock()
-		return false
-	})
-	app.Window.Connect("enter-notify-event", func(event *gdk.Event) bool {
-		app.ShowDock()
-		return false
-	})
+	if app.Config.General.AutoHide {
+		app.Window.AddEvents(int(gdk.EVENT_ENTER_NOTIFY | gdk.EVENT_LEAVE_NOTIFY)) // Add event pointer to notify
+		app.Window.Connect("leave-notify-event", func(event *gdk.Event) bool {
+			app.ShowDock()
+			//app.HideDock()
+			return false
+		})
+		app.Window.Connect("enter-notify-event", func(event *gdk.Event) bool {
+			app.HideDock()
+			//app.ShowDock()
+			return false
+		})
+	}
 
 	// Find orientation
 	var orientation gtk.Orientation
@@ -326,8 +331,10 @@ func (app *App) Run() error {
 	app.positionWindow()
 
 	//Create the hot zone
-	if err := app.CreateHotZone(); err != nil {
-		return fmt.Errorf("unable to create hot zone: %v", err)
+	if app.Config.General.AutoHide {
+		if err := app.CreateHotZone(); err != nil {
+			return fmt.Errorf("unable to create hot zone: %v", err)
+		}
 	}
 
 	// Start the GTK main loop
