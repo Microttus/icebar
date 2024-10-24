@@ -262,11 +262,11 @@ func (app *App) Run() error {
 
 	// Auto hide
 	app.Window.AddEvents(int(gdk.EVENT_ENTER_NOTIFY | gdk.EVENT_LEAVE_NOTIFY)) // Add event pointer to notify
-	app.Window.Connect("leave-notify-event", func(widget *gtk.Widget, event *gdk.Event) bool {
+	app.Window.Connect("leave-notify-event", func(widget *gtk.Window, event *gdk.Event) bool {
 		app.HideDock()
 		return false
 	})
-	app.Window.Connect("enter-notify-event", func(widget *gtk.Widget, event *gdk.Event) bool {
+	app.Window.Connect("enter-notify-event", func(widget *gtk.Window, event *gdk.Event) bool {
 		app.ShowDock()
 		return false
 	})
