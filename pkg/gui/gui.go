@@ -206,7 +206,7 @@ func (app *App) CreateHotZone() error {
 		return fmt.Errorf("unable to create hot zone window: %v", err)
 	}
 
-	app.HotZoneWindow.SetTypeHint(gdk.WINDOW_TYPE_HINT_DOCK)
+	//app.HotZoneWindow.SetTypeHint(gdk.WINDOW_TYPE_HINT_DOCK)
 	app.HotZoneWindow.SetDecorated(false)
 	app.HotZoneWindow.SetSkipTaskbarHint(true)
 	app.HotZoneWindow.SetAcceptFocus(false)
@@ -274,6 +274,7 @@ func (app *App) Run() error {
 
 	app.Window.SetTitle("icebar")
 	app.Window.SetResizable(false)
+	app.Window.SetTypeHint(gdk.WINDOW_TYPE_HINT_DOCK)
 	app.Window.SetDecorated(false)
 	app.Window.SetSkipTaskbarHint(false)
 	app.Window.SetKeepAbove(true)
