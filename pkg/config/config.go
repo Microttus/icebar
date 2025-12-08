@@ -20,11 +20,12 @@ type BehaviorSettings struct {
 }
 
 type AppearanceSettings struct {
-	MainColor       string `toml:"main_color"`
-	EdgeColor       string `toml:"edge_color"`
-	BorderThickness int    `toml:"border_thickness"`
-	BlockStyle      string `toml:"block_style"`
-	DockMargins     int    `toml:"dock_margins"`
+	MainColor       string  `toml:"main_color"`
+	EdgeColor       string  `toml:"edge_color"`
+	Opacity         float64 `toml:"opacity"`
+	BorderThickness int     `toml:"border_thickness"`
+	BlockStyle      string  `toml:"block_style"`
+	DockMargins     int     `toml:"dock_margins"`
 }
 
 type DockSettings struct {

@@ -1,14 +1,19 @@
 package gui
 
 import (
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/microttus/icebar/pkg/dock"
-	"time"
 
 	"fmt"
-	"github.com/microttus/icebar/pkg/config"
 	"log"
+
+	"github.com/microttus/icebar/pkg/config"
 )
 
 type App struct {
@@ -34,25 +39,87 @@ func (app *App) applyColors() error {
 		borderThickness = 0
 	}
 
-	//Build the CSS string with options
+	// --- Helper: hex (#rrggbb or #rgb) → (r,g,b,error) ---
+	parseHexColor := func(hex string) (int, int, int, error) {
+		hex = strings.TrimSpace(hex)
+
+		// transparent bypass
+		if strings.EqualFold(hex, "transparent") {
+			return 0, 0, 0, nil
+		}
+
+		// #rgb → #rrggbb
+		if match, _ := regexp.MatchString(`^#[0-9a-fA-F]{3}$`, hex); match {
+			hex = fmt.Sprintf("#%c%c%c%c%c%c",
+				hex[1], hex[1],
+				hex[2], hex[2],
+				hex[3], hex[3],
+			)
+		}
+
+		if !regexp.MustCompile(`^#[0-9a-fA-F]{6}$`).MatchString(hex) {
+			return 0, 0, 0, fmt.Errorf("invalid hex color")
+		}
+
+		r, _ := strconv.ParseInt(hex[1:3], 16, 64)
+		g, _ := strconv.ParseInt(hex[3:5], 16, 64)
+		b, _ := strconv.ParseInt(hex[5:7], 16, 64)
+		return int(r), int(g), int(b), nil
+	}
+
+	opacity := app.Config.Appearance.Opacity
+	if opacity < 0 {
+		opacity = 0
+	}
+	if opacity > 1 {
+		opacity = 1
+	}
+
+	mainRaw := strings.TrimSpace(app.Config.Appearance.MainColor)
+	edgeRaw := strings.TrimSpace(app.Config.Appearance.EdgeColor)
+
+	// BlockStyle = none → force transparency
+	if strings.EqualFold(app.Config.Appearance.BlockStyle, "none") {
+		mainRaw = "transparent"
+		edgeRaw = "transparent"
+	}
+
+	// Convert hex colors + opacity to rgba()
+	toCSS := func(raw string) string {
+		if strings.EqualFold(raw, "transparent") {
+			return "rgba(0,0,0,0)"
+		}
+
+		r, g, b, err := parseHexColor(raw)
+		if err != nil {
+			log.Printf("applyColors: invalid color %q → transparent", raw)
+			return "rgba(0,0,0,0)"
+		}
+
+		return fmt.Sprintf("rgba(%d, %d, %d, %.3f)", r, g, b, opacity)
+	}
+
+	mainCSS := toCSS(mainRaw)
+	edgeCSS := toCSS(edgeRaw)
+
+	// CSS
 	css := fmt.Sprintf(`
 	#dock {
-	   	background-color: %s;
-	   	border: %dpx solid %s;
+		background-color: %s;
+		border: %dpx solid %s;
 		border-radius: 5px;
-        padding: 5px;
-    }
-    .dock-button {
-        border: none;
-        background: transparent;
-    }
-    .dock-button:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-	}`, app.Config.Appearance.MainColor, borderThickness, app.Config.Appearance.EdgeColor)
+		padding: 5px;
+	}
+	.dock-button {
+		border: none;
+		background: transparent;
+	}
+	.dock-button:hover {
+		background-color: rgba(255, 255, 255, 0.1);
+	}`, mainCSS, borderThickness, edgeCSS)
 
 	// Load the CSS data
-	err = cssProvider.LoadFromData(css)
-	if err != nil {
+	if err := cssProvider.LoadFromData(css); err != nil {
 		return err
 	}
 
