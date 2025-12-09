@@ -35,12 +35,15 @@ func (app *App) applyColors() error {
 	if screen := app.Window.GetScreen(); screen != nil {
 		if visual, _ := screen.GetRGBAVisual(); visual != nil {
 			app.Window.SetVisual(visual)
-			log.Println("applyColors: using RGBA visual for transparency")
 		} else {
-			log.Println("applyColors: RGBA visual not available — transparency may not work (compositor?)")
+			if app.Verbose {
+				log.Println("applyColors: RGBA visual not available — transparency may not work (compositor?)")
+			}
 		}
 	} else {
-		log.Println("applyColors: no screen found for window")
+		if app.Verbose {
+			log.Println("applyColors: no screen found for window")
+		}
 	}
 
 	// Create a CSS provider

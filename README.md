@@ -7,13 +7,15 @@ An docker application developed for bspwm and i3, made to be super simple and st
 **Features**
 
 - [ ]  Auto Hide
-- [X]  Margin from config
-- [ ]  Box style (box/island/none)
-- [ ]  Dynamic configuration handling
-- [X]  Set monitor from config (must be handled in wm config)
+- [x]  Margin from config
+- [x]  Box style (box/~~island~~/none)
+- [x]  Set monitor from config (must be handled in wm config)
 - [ ]  Running-state integration
-- [ ]  Dynamic config path on launch
+- [x]  Dynamic config path on launch (--config)
 - [ ]  Paper basket option
+- [x]  Transparency for background
+- [ ]  Box style (island)
+- [x]  Verbose logging
 
 ## File structure
 
