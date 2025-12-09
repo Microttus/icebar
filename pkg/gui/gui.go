@@ -21,11 +21,27 @@ type App struct {
 	Window        *gtk.Window
 	MainBox       *gtk.Box
 	HotZoneWindow *gtk.Window
+
+	Verbose bool
 }
 
 func (app *App) applyColors() error {
 	// Set the name of the main container to "dock" for the CSS to apply
 	app.MainBox.SetName("dock")
+
+	app.Window.SetAppPaintable(true) // allow custom drawing with alpha
+
+	// Try to set an RGBA visual from the screen. If absent, compositor might not support it.
+	if screen := app.Window.GetScreen(); screen != nil {
+		if visual, _ := screen.GetRGBAVisual(); visual != nil {
+			app.Window.SetVisual(visual)
+			log.Println("applyColors: using RGBA visual for transparency")
+		} else {
+			log.Println("applyColors: RGBA visual not available — transparency may not work (compositor?)")
+		}
+	} else {
+		log.Println("applyColors: no screen found for window")
+	}
 
 	// Create a CSS provider
 	cssProvider, err := gtk.CssProviderNew()
@@ -92,7 +108,9 @@ func (app *App) applyColors() error {
 
 		r, g, b, err := parseHexColor(raw)
 		if err != nil {
-			log.Printf("applyColors: invalid color %q → transparent", raw)
+			if app.Verbose {
+				log.Printf("applyColors: invalid color %q → transparent", raw)
+			}
 			return "rgba(0,0,0,0)"
 		}
 
@@ -139,7 +157,9 @@ func (app *App) addApplications() error {
 	for _, application := range app.Config.Dock.Applications {
 		button, err := dock.AddApplicationButton(app.Config, application)
 		if err != nil {
-			log.Printf("Failed to add application button for %s: %v", application.Name, err)
+			if app.Verbose {
+				log.Printf("Failed to add application button for %s: %v", application.Name, err)
+			}
 			continue
 		}
 		if button == nil {
