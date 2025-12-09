@@ -2,11 +2,11 @@ package dock
 
 import (
 	"fmt"
+
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/microttus/icebar/pkg/config"
 	"github.com/microttus/icebar/pkg/launcher"
-	"log"
 )
 
 /*
@@ -77,7 +77,7 @@ func AddApplicationButton(cfg *config.Config, application config.Application) (*
 	if cfg.Behavior.Magnification {
 		// Connect the "enter-notify-event" and "leave-notify-event" for magnification
 		button.Connect("enter-notify-event", func() {
-			log.Printf("Hovering over: %s", application.Name)
+			//log.Printf("Hovering over: %s", application.Name)
 			img.SetPixelSize(int(float64(cfg.General.IconSize) * cfg.Behavior.MagnificationFactor))
 		})
 		button.Connect("leave-notify-event", func() {
