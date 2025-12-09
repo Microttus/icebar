@@ -10,6 +10,8 @@ import (
 	"github.com/microttus/icebar/pkg/gui"
 )
 
+const Version = "1.1.0"
+
 func main() {
 	// --- CLI flags ---
 	help := flag.Bool("h", false, "Show help")
@@ -17,8 +19,16 @@ func main() {
 	configPath := flag.String("config", "", "Path to custom config directory")
 	verbose := flag.Bool("v", false, "Enable verbose logging")
 	verboseLong := flag.Bool("verbose", false, "Enable verbose logging")
+	version := flag.Bool("version", false, "Show version and exit")
+	versionShort := flag.Bool("V", false, "Show version and exit")
 
 	flag.Parse()
+
+	// Handle version print
+	if *version || *versionShort {
+		fmt.Printf("IceBar version %s\n", Version)
+		os.Exit(0)
+	}
 
 	// Handle help flags first
 	if *help || *helpLong {
@@ -28,6 +38,7 @@ func main() {
 		fmt.Println("  -h, --help           Show this help message")
 		fmt.Println("      --config <path>  Use a custom config directory")
 		fmt.Println("  -v, --verbose        Enable verbose logging")
+		fmt.Println("  -V, --version         Show version and exit")
 		os.Exit(0)
 	}
 
